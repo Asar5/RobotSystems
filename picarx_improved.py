@@ -2,7 +2,7 @@ import logging
 from  logdecorator  import  log_on_start , log_on_end , log_on_error
 logging_format = "%( asctime)s: %( message)s"
 logging.basicConfig(format=logging_format , level=logging.INFO ,datefmt ="%H:%M:%S")
-logging.getLogger ().setLevel(logging.DEBUG)
+logging.getLogger().setLevel(logging.DEBUG)
 
 import time
 try:
@@ -12,6 +12,8 @@ try:
 except  ImportError:
     print("This  computer  does  not  appear  to be a PiCar -X system(/opt/ezblock  is not  present). Shadowing  hardware  callswith  substitute  functions ")
     from  sim_ezblock  import *
+
+import  atexit
 
 PERIOD = 4095
 PRESCALER = 10
@@ -43,9 +45,9 @@ for pin in motor_speed_pins:
     pin.prescaler(PRESCALER)
 
 
-@log_on_start(logging.DEBUG , "Message  when  function  starts ")
-@log_on_error(logging.DEBUG , "Message  when  function  encountersan error  before  completing ")
-@log_on_end(logging.DEBUG , "Message  when  function  endssuccessfully ")
+#@log_on_start(logging.DEBUG , "{asctime:s}: Message  when  function  starts ")
+#@log_on_error(logging.DEBUG , "{asctime:s}: Message  when  function  encountersan error  before  completing ")
+#@log_on_end(logging.DEBUG , "{asctime:s}: Message  when  function  endssuccessfully ")
 def set_motor_speed(motor, speed):
     global cali_speed_value,cali_dir_value
     motor -= 1
@@ -132,7 +134,9 @@ def forward(speed):
     set_motor_speed(1, -1*speed)
     set_motor_speed(2, -1*speed)
 
+@atexit.register
 def stop():
+	print("IM here")
     set_motor_speed(1, 0)
     set_motor_speed(2, 0)
 
