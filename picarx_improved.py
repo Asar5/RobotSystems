@@ -1,13 +1,15 @@
+import numpy as np
 import logging
 from  logdecorator  import  log_on_start , log_on_end , log_on_error
-logging_format = "%( asctime)s: %( message)s"
+logging_format = "%(asctime)s: %(message)s"
 logging.basicConfig(format=logging_format , level=logging.INFO ,datefmt ="%H:%M:%S")
 logging.getLogger().setLevel(logging.DEBUG)
 
 import time
 try:
     from  ezblock  import *
-    __reset_mcu__ ()
+    from ezblock import __reset_mcu__
+    __reset_mcu__()
     time.sleep (0.01)
 except  ImportError:
     print("This  computer  does  not  appear  to be a PiCar -X system(/opt/ezblock  is not  present). Shadowing  hardware  callswith  substitute  functions ")
@@ -26,20 +28,23 @@ left_rear_pwm_pin = PWM("P13")
 right_rear_pwm_pin = PWM("P12")
 left_rear_dir_pin = Pin("D4")
 right_rear_dir_pin = Pin("D5")
+length = 0.093 #mts
+breadth = 0.11 #mts
 
 S0 = ADC('A0')
 S1 = ADC('A1')
 S2 = ADC('A2')
 
 Servo_dir_flag = 1
-dir_cal_value = 0
+dir_cal_value = -17
 cam_cal_value_1 = 0
 cam_cal_value_2 = 0
 motor_direction_pins = [left_rear_dir_pin, right_rear_dir_pin]
 motor_speed_pins = [left_rear_pwm_pin, right_rear_pwm_pin]
 cali_dir_value = [1, -1]
 cali_speed_value = [0, 0]
-#初始化PWM引脚
+curr_servo_angle = 0
+
 for pin in motor_speed_pins:
     pin.period(PERIOD)
     pin.prescaler(PRESCALER)
@@ -56,8 +61,8 @@ def set_motor_speed(motor, speed):
     elif speed < 0:
         direction = -1 * cali_dir_value[motor]
     speed = abs(speed)
-    if speed != 0:
-        speed = int(speed /2 ) + 50
+    #if speed != 0:
+        #speed = int(speed /2 ) + 50
     speed = speed - cali_speed_value[motor]
     if direction < 0:
         motor_direction_pins[motor].high()
@@ -92,8 +97,9 @@ def dir_servo_angle_calibration(value):
     # dir_servo_pin.angle(dir_cal_value)
 
 def set_dir_servo_angle(value):
-    global dir_cal_value
+    global dir_cal_value, curr_servo_angle
     dir_servo_pin.angle(value+dir_cal_value)
+    curr_servo_angle = value
 
 def camera_servo1_angle_calibration(value):
     global cam_cal_value_1
@@ -130,13 +136,35 @@ def backward(speed):
     set_motor_speed(1, speed)
     set_motor_speed(2, speed)
 
+#@log_on_start(logging.DEBUG , "{asctime:s}: Moving forward")
+#@log_on_error(logging.DEBUG , "{asctime:s}: Error on executing forward")
+#@log_on_end(logging.DEBUG , "{asctime:s}: Finished executing forward")
 def forward(speed):
-    set_motor_speed(1, -1*speed)
-    set_motor_speed(2, -1*speed)
+    global length, curr_servo_angle, breadth
+    if curr_servo_angle  == 0:
+        turn_radius =  0
+    else:
+        turn_radius = length/np.tan(curr_servo_angle)
+    print("ANGLE:", curr_servo_angle)
+    speed_in = speed#*(turn_radius - breadth/2)*10  
+    speed_out = speed#*(turn_radius + breadth/2)*10  
+    if curr_servo_angle > 0:
+        set_motor_speed(1, -1*speed_in)
+        set_motor_speed(2, -1*speed_out)
+    elif curr_servo_angle < 0:
+        set_motor_speed(2, -1*speed_in)
+        set_motor_speed(1, -1*speed_out)
+    else:
+        set_motor_speed(1, -1*speed)
+        set_motor_speed(2, -1*speed)
 
+
+#@log_on_start(logging.DEBUG , "{asctime:s}: Exiting... ")
+#@log_on_error(logging.DEBUG , "{asctime:s}: Error on exit... ")
+#@log_on_end(logging.DEBUG , "{asctime:s}: Clean Exit!")
 @atexit.register
 def stop():
-	print("IM here")
+    print("IM here")
     set_motor_speed(1, 0)
     set_motor_speed(2, 0)
 
