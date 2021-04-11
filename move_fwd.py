@@ -6,7 +6,7 @@ picarx_improved.set_dir_servo_angle(-10)
 time.sleep(5)
 picarx_improved.forward(50)
 i = 0
-while(i < 200000):
+while(i < 20000):
     print(i)
     i+=1
 picarx_improved.stop()
@@ -15,7 +15,7 @@ picarx_improved.set_dir_servo_angle(25)
 time.sleep(5)
 picarx_improved.backward(50)
 i = 0
-while(i < 200000):
+while(i < 20000):
     print(i)
     i+=1
 picarx_improved.stop()

@@ -1,11 +1,11 @@
-import numpy as np
+import time
 import logging
 from  logdecorator  import  log_on_start , log_on_end , log_on_error
 logging_format = "%(asctime)s: %(message)s"
 logging.basicConfig(format=logging_format , level=logging.INFO ,datefmt ="%H:%M:%S")
 logging.getLogger().setLevel(logging.DEBUG)
+import numpy as np
 
-import time
 try:
     from  ezblock  import *
     from ezblock import __reset_mcu__
@@ -145,9 +145,9 @@ def forward(speed):
         turn_radius =  0
     else:
         turn_radius = length/np.tan(curr_servo_angle)
-    print("ANGLE:", curr_servo_angle)
-    speed_in = speed#*(turn_radius - breadth/2)*10  
-    speed_out = speed#*(turn_radius + breadth/2)*10  
+    __PRINT__("ANGLE:", curr_servo_angle)
+    speed_in = speed*(turn_radius - breadth/2)*10  
+    speed_out = speed*(turn_radius + breadth/2)*10  
     if curr_servo_angle > 0:
         set_motor_speed(1, -1*speed_in)
         set_motor_speed(2, -1*speed_out)
@@ -158,13 +158,11 @@ def forward(speed):
         set_motor_speed(1, -1*speed)
         set_motor_speed(2, -1*speed)
 
-
-#@log_on_start(logging.DEBUG , "{asctime:s}: Exiting... ")
-#@log_on_error(logging.DEBUG , "{asctime:s}: Error on exit... ")
-#@log_on_end(logging.DEBUG , "{asctime:s}: Clean Exit!")
 @atexit.register
+@log_on_start(logging.DEBUG , "Exiting")
+@log_on_error(logging.DEBUG , "Error on exit")
+@log_on_end(logging.DEBUG , "Clean Exit")
 def stop():
-    print("IM here")
     set_motor_speed(1, 0)
     set_motor_speed(2, 0)
 
