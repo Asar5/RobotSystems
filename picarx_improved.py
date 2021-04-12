@@ -1,6 +1,6 @@
 import time
 import logging
-from  logdecorator  import  log_on_start , log_on_end , log_on_error
+from logdecorator  import  log_on_start , log_on_end , log_on_error
 logging_format = "%(asctime)s: %(message)s"
 logging.basicConfig(format=logging_format , level=logging.INFO ,datefmt ="%H:%M:%S")
 logging.getLogger().setLevel(logging.DEBUG)
@@ -221,7 +221,7 @@ def Get_distance():
     #print(cm)
     return cm
 
-def move_back_forth(angle=0, dist=1, direction=forward, speed=50, times=1):
+def move_back_forth(angle=0, dist=1.0, direction=forward, speed=50, times=1):
     for i in range(0, times):
         set_dir_servo_angle(angle)
         direction(speed)

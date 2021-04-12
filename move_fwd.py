@@ -1,4 +1,6 @@
-import picarx_improved as  pic
+#!/usr/bin/env python3
+
+import picarx_improved as pic
 import numpy as  np
 import time
 
