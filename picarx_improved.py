@@ -36,6 +36,7 @@ S1 = ADC('A1')
 S2 = ADC('A2')
 
 Servo_dir_flag = 1
+#Servo Direction calibration
 dir_cal_value = -17
 cam_cal_value_1 = 0
 cam_cal_value_2 = 0
@@ -134,7 +135,7 @@ def set_power(speed):
 
 def backward(speed):
     logging.debug("BACK")
-    if curr_servo_angle  == 0:
+    if curr_servo_angle == 0:
         set_motor_speed(1, speed)
         set_motor_speed(2, speed)
     else:
@@ -145,7 +146,7 @@ def backward(speed):
 #@log_on_end(logging.DEBUG , "{asctime:s}: Finished executing forward")
 def forward(speed):
     logging.debug("FRONT")
-    if curr_servo_angle  == 0:
+    if curr_servo_angle == 0:
         set_motor_speed(1, -1*speed)
         set_motor_speed(2, -1*speed)
     else:
