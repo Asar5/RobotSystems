@@ -133,36 +133,64 @@ def set_power(speed):
     set_motor_speed(2, speed) 
 
 def backward(speed):
-    set_motor_speed(1, speed)
-    set_motor_speed(2, speed)
+    logging.debug("BACK")
+    if curr_servo_angle  == 0:
+        set_motor_speed(1, speed)
+        set_motor_speed(2, speed)
+    else:
+        find_turn_speed(speed)
 
 #@log_on_start(logging.DEBUG , "{asctime:s}: Moving forward")
 #@log_on_error(logging.DEBUG , "{asctime:s}: Error on executing forward")
 #@log_on_end(logging.DEBUG , "{asctime:s}: Finished executing forward")
 def forward(speed):
-    global length, curr_servo_angle, breadth
+    logging.debug("FRONT")
     if curr_servo_angle  == 0:
-        turn_radius =  0
-    else:
-        turn_radius = length/np.tan(curr_servo_angle)
-    __PRINT__("ANGLE:", curr_servo_angle)
-    speed_in = speed*(turn_radius - breadth/2)*10  
-    speed_out = speed*(turn_radius + breadth/2)*10  
-    if curr_servo_angle > 0:
-        set_motor_speed(1, -1*speed_in)
-        set_motor_speed(2, -1*speed_out)
-    elif curr_servo_angle < 0:
-        set_motor_speed(2, -1*speed_in)
-        set_motor_speed(1, -1*speed_out)
-    else:
         set_motor_speed(1, -1*speed)
         set_motor_speed(2, -1*speed)
+    else:
+        find_turn_speed(-1*speed)
+
+
+def find_turn_speed(speed):
+    global length, curr_servo_angle, breadth
+    rev_dir =  False
+    if speed < 0:
+        rev_dir = True
+        speed = -speed
+    turn_radius = length/abs(np.tan(curr_servo_angle))
+    speed_in = speed*abs((turn_radius - breadth/2))*1  
+    speed_out = speed*abs((turn_radius + breadth/2))*1  
+    if  speed_in < speed_out:
+        c = speed_in
+        speed_in = speed_out
+        speed_out = c
+    if speed_in < 35:
+        speed_in = 35
+    if  speed_out < 40:
+        speed_out = 40
+    if rev_dir:
+        speed_in = -speed_in
+        speed_out = -speed_out
+
+    if curr_servo_angle > 0:
+        set_motor_speed(1, speed_in)
+        set_motor_speed(2, speed_out)
+    else:
+        set_motor_speed(2, speed_in)
+        set_motor_speed(1, speed_out)
+    logging.debug("turn radius %s: ", turn_radius)
+    logging.debug("servo angle %s: ",curr_servo_angle)
+    logging.debug("speed in %s: ",speed_in)
+    logging.debug("speed out %s: ",speed_out)
+
 
 @atexit.register
 @log_on_start(logging.DEBUG , "Exiting")
 @log_on_error(logging.DEBUG , "Error on exit")
 @log_on_end(logging.DEBUG , "Clean Exit")
 def stop():
+    logging.debug("hello")
     set_motor_speed(1, 0)
     set_motor_speed(2, 0)
 
@@ -192,7 +220,44 @@ def Get_distance():
     cm = round(during * 340 / 2 * 100, 2)
     #print(cm)
     return cm
-     
+
+def move_back_forth(angle=0, dist=1, direction=forward, speed=50, times=1):
+    for i in range(0, times):
+        set_dir_servo_angle(angle)
+        direction(speed)
+        time.sleep(dist)
+    #    stop()
+    set_dir_servo_angle(0)
+    stop()
+
+def parallel_park(side):
+    angle = 45
+    if side == 'left':
+        angle = -angle
+        spd = 30
+        dst = 1.5
+    else:
+        angle = 20
+        spd = 20
+        dst = 0.5
+    move_back_forth(angle=0, dist=0.5, direction=forward, speed=spd)
+    move_back_forth(angle=angle, direction=backward, speed=spd)
+    move_back_forth(angle=-angle, dist=dst, direction=backward, speed=spd)
+    move_back_forth(speed=spd)
+
+def k_turn(side):
+    #move_back_forth(angle=50, direction=forward)
+    if side == 'left':
+        angle = -40
+        spd = 50
+    else:
+        angle = 50
+        spd = 20
+    move_back_forth(angle=angle, dist=2.0, direction=forward, speed=spd)
+    move_back_forth(angle=-angle, dist=2.5, direction=backward, speed=spd)
+    move_back_forth(angle=angle, dist=2.8, direction=forward, speed=spd)
+
+
 def test():
     # dir_servo_angle_calibration(-10) 
     set_dir_servo_angle(-40)
