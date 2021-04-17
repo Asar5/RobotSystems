@@ -28,7 +28,7 @@ class Interpretor:
         self.sensitivity = sensitivity
         self.polarity = polarity
 
-    def process_adc(self, adc_value_list):
+    def convert_to_discrete(self, adc_value_list):
         """
         Determine whether the system is centred or to the right/left scaled as a  range of [-1, 1] by processing the
         sensor values
@@ -36,25 +36,102 @@ class Interpretor:
         :return: robot_pos: a number between [-1, 1] indicating whether the distance the system is to the right(-), left
         (+) or centred (0) to the line.
         """
-        right_sensor = adc_value_list[0]
+        left_sensor = adc_value_list[0]
         centre_sensor = adc_value_list[1]
-        left_sensor = adc_value_list[2]
-        robot_pos = np.inf
+        right_sensor = adc_value_list[2]
 
-        if abs(centre_sensor - right_sensor) > self.sensitivity:
-            logging.debug("Towards right")
-            robot_pos = -1
+        detect_left_edge = left_sensor - centre_sensor
+        detect_right_edge = right_sensor - centre_sensor
 
-        if abs(centre_sensor - left_sensor) > self.sensitivity:
-            logging.debug("Towards left")
-            robot_pos = 1
+        if abs(detect_left_edge) > self.sensitivity:
+            if detect_left_edge < 0:
+                discrete_left = False
+            else:
+                discrete_left = True
+            discrete_centre = not discrete_left
 
-        if (adc_value_list <= self.sensitivity/2).all():
+            if abs(detect_right_edge) > self.sensitivity:
+                discrete_right = not discrete_centre
+            else:
+                discrete_right = discrete_centre
+        else:
+            if abs(detect_right_edge) > self.sensitivity:
+                if detect_right_edge < 0:
+                    discrete_right = False
+                else:
+                    discrete_right = True
+                discrete_centre = not discrete_right
+                discrete_left = discrete_centre
+            else:
+                if left_sensor > self.sensitivity:
+                    discrete_left = True
+                else:
+                    discrete_left = False
+                discrete_right = discrete_left
+                discrete_centre = discrete_left
+
+        return [discrete_left,  discrete_centre, discrete_right]
+
+    def process_adc(self, adc_list):
+        discrete_list = self.convert_to_discrete(adc_list)
+        if discrete_list == [False, False, False]:
             if self.polarity:
-                logging.debug("Centred")
+                print("Move straight; Polarity: {}; Values: {}".format(self.polarity, discrete_list))
                 robot_pos = 0
             else:
-                logging.debug("Position unknown")
+                print("Move in circle; Polarity: {}; Values: {}".format(self.polarity, discrete_list))
                 robot_pos = np.inf
+        elif discrete_list == [False, False, True]:
+            if self.polarity:
+                print("Move slightly left; Polarity: {}; Values: {}".format(self.polarity, discrete_list))
+                robot_pos = -0.5
+            else:
+                print("Move extreme right; Polarity: {}; Values: {}".format(self.polarity, discrete_list))
+                robot_pos = 1.0
+        elif discrete_list == [False, True, False] or discrete_list == [True, False, True]:
+            print("Move straight; Polarity: {}; Values: {}".format(self.polarity, discrete_list))
+            robot_pos = 0
+        elif discrete_list == [False, True, True]:
+            if self.polarity:
+                print("Move extreme left; Polarity: {}; Values: {}".format(self.polarity, discrete_list))
+                robot_pos = -1.0
+            else:
+                print("Move slight right; Polarity: {}; Values: {}".format(self.polarity, discrete_list))
+                robot_pos = 0.5
 
+        elif discrete_list == [True, False, False]:
+            if self.polarity:
+                print("Move slight right; Polarity: {}; Values: {}".format(self.polarity, discrete_list))
+                robot_pos = 0.5
+            else:
+                print("Move extreme left; Polarity: {}; Values: {}".format(self.polarity, discrete_list))
+                robot_pos = -1.0
+        elif discrete_list == [True, True, False]:
+            if self.polarity:
+                print("Move extreme right; Polarity: {}; Values: {}".format(self.polarity, discrete_list))
+                robot_pos = 1.0
+            else:
+                print("Move slight left; Polarity: {}; Values: {}".format(self.polarity, discrete_list))
+                robot_pos = -0.5
+        elif discrete_list == [True, True, True]:
+            if self.polarity:
+                print("Move in  circle; Polarity: {}; Values: {}".format(self.polarity, discrete_list))
+                robot_pos = np.inf
+            else:
+                print("Move straight; Polarity: {}; Values: {}".format(self.polarity, discrete_list))
+                robot_pos = 0
         return robot_pos
+
+if __name__ == '__main__':
+    # import sensor_commands
+
+    # s_r = sensor_commands.SensorCommands()
+    # int_sense = Interpretor(sensitivity=750, polarity=False)
+    int_sense = Interpretor(sensitivity=750, polarity=True)
+
+    # while(1):
+        # val = s_r.get_adc_value()
+    retval = int_sense.process_adc([10, 8, 1500])
+    print(retval)
+    # time.sleep(3)
+
