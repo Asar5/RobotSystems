@@ -19,7 +19,7 @@ except ImportError:
     from sim_ezblock import *
 
 class Interpretor:
-    def __init__(self, sensitivity=0.01, polarity=True):
+    def __init__(self, sensitivity=750, polarity=True):
         """
         Initialize how we interpret greyscale sensors for line following
         :param sensitivity: How different  dark/light readings should be?

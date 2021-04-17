@@ -27,8 +27,7 @@ class Controller:
     def __init__(self, scaling=1.0):
         self.scaling = scaling
 
-    def main_control(self, value):
-        motor = motor_commands.MotorCommands()
+    def main_control(self, value, motor):
         angle = self.scaling*value
         motor.set_dir_servo_angle(angle)
         return angle
