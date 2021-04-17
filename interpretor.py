@@ -74,6 +74,7 @@ class Interpretor:
 
     def process_adc(self, adc_list):
         discrete_list = self.convert_to_discrete(adc_list)
+        robot_pos = np.inf
         if discrete_list == [False, False, False]:
             if self.polarity:
                 print("Move straight; Polarity: {}; Values: {}".format(self.polarity, discrete_list))
