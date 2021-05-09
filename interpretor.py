@@ -7,6 +7,7 @@ logging.basicConfig(format=logging_format , level=logging.INFO ,datefmt ="%H:%M:
 logging.getLogger().setLevel(logging.DEBUG)
 import numpy as np
 import atexit
+import bus
 
 try:
     from ezblock import *
@@ -17,6 +18,7 @@ except ImportError:
     print("This computer does not appear to be a PiCar-X system(/opt/ezblock is not present). Shadowing hardware calls "
           "with substitute functions")
     from sim_ezblock import *
+
 
 class Interpretor:
     def __init__(self, sensitivity=750, polarity=True):
@@ -122,6 +124,16 @@ class Interpretor:
                 print("Move straight; Polarity: {}; Values: {}".format(self.polarity, discrete_list))
                 robot_pos = 0
         return robot_pos
+
+
+def consumer_producer(inter_bus, delay_s):
+    interpret = Interpretor()
+    while(1):
+        get_val = inter_bus.read()
+        converted_val = interpret.process_adc(get_val)
+        inter_bus.write(converted_val)
+        time.sleep(delay_s)
+
 
 if __name__ == '__main__':
     # import sensor_commands

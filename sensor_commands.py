@@ -7,6 +7,7 @@ logging.basicConfig(format=logging_format , level=logging.INFO ,datefmt ="%H:%M:
 logging.getLogger().setLevel(logging.DEBUG)
 import numpy as np
 import atexit
+import bus
 
 try:
     from  ezblock  import *
@@ -28,3 +29,11 @@ class SensorCommands:
     def get_adc_value(self):
         adc_value_list = [self.s0.read(), self.s1.read(), self.s2.read()]
         return adc_value_list
+
+
+def producer(sensor_bus, delay_s):
+    sensor = SensorCommands()
+    while(1):
+        set_val = sensor.get_adc_value()
+        sensor_bus.write(set_val)
+        time.sleep(delay_s)

@@ -10,7 +10,7 @@ import atexit
 import motor_commands
 import interpretor
 import sensor_commands
-
+import bus
 
 try:
     from ezblock import *
@@ -31,3 +31,20 @@ class Controller:
         angle = self.scaling*value
         motor.set_dir_servo_angle(angle)
         return angle
+
+
+def producer(control_bus, delay_s):
+    control = Controller()
+    while(1):
+        get_val = control_bus.read()
+        angle = control.main_control(get_val[0], get_val[1])
+        time.sleep(delay_s)
+
+
+def consumer_producer(control_bus, delay_s):
+    control = Controller()
+    while(1):
+        get_val = control_bus.read()
+        angle = control.main_control(get_val[0], get_val[1])
+        control_bus.write(angle)
+        time.sleep(delay_s)
