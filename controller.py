@@ -35,16 +35,18 @@ class Controller:
 
 def producer(control_bus, delay_s):
     control = Controller()
-    while(1):
+    motor = motor_commands.MotorCommands()
+    while 1:
         get_val = control_bus.read()
-        angle = control.main_control(get_val[0], get_val[1])
+        angle = control.main_control(get_val, motor)
         time.sleep(delay_s)
 
 
 def consumer_producer(control_bus, delay_s):
     control = Controller()
+    motor = motor_commands.MotorCommands()
     while(1):
         get_val = control_bus.read()
-        angle = control.main_control(get_val[0], get_val[1])
+        angle = control.main_control(get_val, motor)
         control_bus.write(angle)
         time.sleep(delay_s)
