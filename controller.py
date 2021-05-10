@@ -30,6 +30,7 @@ class Controller:
     def main_control(self, value, motor):
         angle = self.scaling*value
         motor.set_dir_servo_angle(angle)
+        motor.forward(10)
         return angle
 
 
