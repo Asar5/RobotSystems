@@ -5,13 +5,6 @@ import interpretor
 import sensor_commands
 import controller
 from rossros import *
-# import bus
-# from sensor_commands import producer as sensor_function
-# from interpretor import consumer_producer as interpreter_function
-# from controller import consumer_producer as controller_function
-
-import concurrent.futures
-from readerwriterlock import rwlock
 
 
 motor = motor_commands.MotorCommands()
@@ -34,8 +27,3 @@ controller_delay = 1
 
 runConcurrently([sensor_function, interpreter_function, control_function])
 
-# while 1:
-#     get_sensor_values= sens.get_adc_value()
-#     interpreted_sensor_values = inter.process_adc(get_sensor_values)
-#     controlled_values = contr.main_control(interpreted_sensor_values, motor)
-#     motor.forward(30)
